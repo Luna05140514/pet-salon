@@ -2,7 +2,8 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="HandheldFriendly" content="true">
 <title>萌寵SPA沙龍</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,7 +18,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{ --line:#4A3A3A; --cream:#FFF6DC; --butter:#FBD98A; }
-  html,body{ color:var(--line); }
+  /* never zoom: pan-x pan-y = scrolling allowed, pinch-zoom AND double-tap-zoom disabled (iOS/iPadOS 13+) */
+  html,body{ color:var(--line); touch-action:pan-x pan-y; -ms-touch-action:pan-x pan-y; -webkit-text-size-adjust:100%; text-size-adjust:100%;
+    overscroll-behavior:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  *,*::before,*::after{ touch-action:pan-x pan-y; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+  button,[role=button]{ touch-action:manipulation; }
+  .stage,.stage *,.circle-btn,[data-acc],[data-item],.turntable{ touch-action:none; }
   body{
     font-family:'Zen Maru Gothic','PingFang TC','Microsoft JhengHei',system-ui,sans-serif; -webkit-tap-highlight-color:transparent;
     min-height:100vh;
@@ -139,11 +145,11 @@
 
   /* ---------- zones ---------- */
   .zones{ pointer-events:none; }
-  .zone{ fill:rgba(255,255,255,.18); stroke:#fff; stroke-width:3; stroke-dasharray:6 5; opacity:0; transition:opacity .25s, fill .2s; }
+  .zone{ fill:#fff; fill-opacity:0; stroke:none; }
   .show-zones .zones{ pointer-events:auto; }
-  .show-zones .zone{ opacity:1; cursor:grab; }
-  .zone.hot{ fill:rgba(255,216,107,.6); }
-  .zone.filled{ stroke-opacity:.3; fill:transparent; }
+  .show-zones .zone{ cursor:grab; }
+  .zone.hot{ fill-opacity:0; }
+
 
   /* ---------- particles & misc ---------- */
   .particle{ position:absolute; pointer-events:none; transform:translate(-50%,-50%); animation:floatUp 1s ease-out forwards; font-size:22px; z-index:6; color:#FF6F96; }
@@ -268,11 +274,9 @@
 <div id="photoModal" class="hidden fixed inset-0 z-[80] bg-[#3B2F2F]/45 flex items-center justify-center p-4">
   <div class="bg-[#FFF6DC] rounded-[2rem] border-[4px] line p-5 w-full max-w-sm text-center">
     <div class="bg-white p-3 pb-4 rounded-lg border-[3px] line rotate-[-2deg]">
-      <div id="photoFrame" class="stage !border-[3px]"><div class="curtain-top"></div><div class="cushion"></div></div>
+      <div id="photoFrame" class="stage !border-[3px]"><div class="curtain-top"></div></div>
       <p id="photoCaption" class="mt-3 font-black"></p>
     </div>
-    <div id="starRow" class="text-5xl mt-5 h-14 tracking-widest"></div>
-    <ul id="starReasons" class="text-sm font-bold mt-2 space-y-1"></ul>
     <button id="saveBtn" class="doodle-btn w-full mt-5 py-3 font-black text-lg" style="background:#9ED8FF">⬇️ 下載照片</button>
     <div class="grid grid-cols-2 gap-3 mt-3">
       <button id="retakeBtn" class="doodle-btn py-3 font-black">繼續照顧</button>
@@ -587,6 +591,14 @@ const ACCS = [
   { id:'wreath', name:'花圈', svg:()=>{ let g='<g>'; const cs=['#FFB3CF','#FFE27A','#C9B3F2','#B8E6D8'];
       for(let i=0;i<7;i++){ const x=-36+i*12, y=f1(-8+x*x/150); g+=`<ellipse cx="${x+6}" cy="${f1(+y+4)}" rx="5" ry="3" fill="#7CCB7A" stroke="${L}" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="6" fill="${cs[i%4]}" stroke="${L}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2" fill="#fff"/>`; }
       return g+'</g>'; } },
+  { id:'bell', name:'鈴鐺項圈', svg:()=>`<g><path d="M-40 -8 Q0 10 40 -8 L40 1 Q0 19 -40 1Z" fill="#FF6F8E" ${sk} stroke-width="3"/>
+      <path d="M-30 -2 Q0 12 30 -2" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/>
+      <circle cy="15" r="8.5" fill="#FFD84D" ${sk} stroke-width="2.6"/><path d="M-6 16 H6" stroke="${L}" stroke-width="2" stroke-linecap="round"/><circle cy="19" r="1.8" fill="${L}"/><circle cx="-3" cy="11" r="2" fill="#fff"/></g>` },
+  { id:'lace', name:'蕾絲項圈', svg:()=>{ let sc=''; for(let x=-34;x<=34;x+=8.5){ const y=f1(4+ (x*x)/260); sc+=`<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${L}" stroke-width="1.8"/>`; }
+      return `<g>${sc}<path d="M-40 -9 Q0 7 40 -9 L40 -1 Q0 15 -40 -1Z" fill="#C9B3F2" ${sk} stroke-width="3"/><circle cy="9" r="6" fill="#FF8FB1" stroke="${L}" stroke-width="2.2"/><circle cx="-2" cy="7" r="1.8" fill="#fff"/></g>`; } },
+  { id:'heartclip', name:'愛心髮夾', svg:()=>`<g><rect x="-20" y="-4" width="40" height="8" rx="4" fill="#FFE27A" ${sk} stroke-width="2.6"/>
+      <path d="M0 16 C-24 2 -22 -18 -9 -18 C-4 -18 0 -14 0 -10 C0 -14 4 -18 9 -18 C22 -18 24 2 0 16Z" fill="#FF7FA8" ${sk} stroke-width="3"/>
+      <path d="M-11 -10 Q-8 -14 -4 -13" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="8" cy="-4" r="1.8" fill="#fff"/></g>` },
   { id:'hat', name:'小草帽', svg:()=>`<g><ellipse cy="8" rx="34" ry="9" fill="#F6D58B" ${sk} stroke-width="3"/><path d="M-18 8 Q-18 -18 0 -18 Q18 -18 18 8Z" fill="#F6D58B" ${sk} stroke-width="3"/><path d="M-18 0 Q0 5 18 0 V5 Q0 10 -18 5Z" fill="#FF8FB1" stroke="${L}" stroke-width="2"/></g>` },
 ];
 
@@ -783,15 +795,15 @@ function renderMeters(){
     S.rinsed=true; $$('.dirt,.tangle',stage).forEach((el,i)=>setTimeout(()=>washOff(el),i*70)); v.clean=100; }
   if(v.clean>=100 && !S.cleanDone){ S.cleanDone=true;
     $('.layer-sparkle',stage).insertAdjacentHTML('beforeend',[[92,92],[210,86],[236,200],[64,196],[150,52]].map(([x,y])=>star(x,y,1.1)).join(''));
-    toast('洗得香噴噴、閃閃發光！✨'); SFX.sparkle(); setHappy(1600); hearts(5); say('好乾淨～謝謝你！✨'); }
+    SFX.sparkle(); setHappy(1600); hearts(5); say('好乾淨～謝謝你！✨'); }
   if(v.fur>=100 && !S.furDone){ S.furDone=true; $('.sway',stage).classList.add('fluffy');
-    toast('毛髮變得蓬鬆柔順！🌸'); SFX.sparkle(); setHappy(1600); hearts(5); say('毛毛好蓬鬆～☁️'); }
+    SFX.sparkle(); setHappy(1600); hearts(5); say('毛毛好蓬鬆～☁️'); }
 }
 // idle "request" bubble
-const NEEDS = { clean:'身上髒髒的…想洗澡 🛁', fur:'毛打結了，幫我梳梳 🪮', food:'肚子餓了～ 🍖', water:'好渴喔… 💧', style:'想變漂亮！🎀' };
+const NEEDS = { clean:'身上髒髒的…想洗澡 🛁', fur:'毛打結了，幫我梳梳 🪮', style:'想變漂亮！🎀' };
 setInterval(()=>{
   if(!S.petKey || $('#gameScreen').classList.contains('hidden') || performance.now()-lastSay<5000) return;
-  const v=meterVals(); const low=Object.entries(v).filter(([k,x])=>x<100).sort((a,b)=>a[1]-b[1])[0];
+  const v=meterVals(); const low=Object.entries(v).filter(([k,x])=>x<100 && NEEDS[k]).sort((a,b)=>a[1]-b[1])[0];
   if(low) say(NEEDS[low[0]],2400); else say('今天超幸福！快幫我拍照 📸',2400);
 },6500);
 
@@ -1017,7 +1029,7 @@ function dryHit(n){
   const r=rootEl(); r.classList.remove('wet'); r.classList.add('blow'); clearTimeout(dryT); dryT=setTimeout(()=>r.classList.remove('blow'),250);
   S.dry+=n; setHappy(600);
   if(performance.now()-lastDrySay>3500){ lastDrySay=performance.now(); say(['暖呼呼～好舒服','呼呼呼～毛毛飛起來了','好溫暖喔 ♡'][Math.floor(Math.random()*3)]); }
-  if(S.dry>=260 && !S.dryDone){ S.dryDone=true; toast('吹得乾爽又蓬鬆！🌬️✨'); SFX.sparkle(); hearts(5);
+  if(S.dry>=260 && !S.dryDone){ S.dryDone=true; SFX.sparkle(); say('吹得乾爽又蓬鬆～'); hearts(5);
     $('.layer-sparkle',stage).insertAdjacentHTML('beforeend',[[80,70],[220,64],[246,176],[54,178]].map(([x,y])=>star(x,y,1)).join('')); }
 }
 function wetOn(){ const r=rootEl(); r.classList.add('wet'); clearTimeout(water.wetT); water.wetT=setTimeout(()=>r.classList.remove('wet'),2200); }
@@ -1086,29 +1098,25 @@ function foodDrag(e,id){
     onDrop:(ev,click)=>{ stage.style.outline=''; if(click||inStage(ev)) feed(id, click?null:{x:ev.clientX,y:ev.clientY}); }
   });
 }
-let eating=false;
+let feedTimers=[], feedCount=0;
 function feed(id,from){
-  if(eating) return;
-  const water=id==='water';
-  if(water?S.thirst>=100:S.hunger>=100){ say(water?'喝不下了～':'吃飽飽了！'); return; }
-  eating=true;
-  const fav=id===pet().fav, gain=water?40:(fav?45:30); if(fav&&!water) S.fedFav=true;
+  if(!S.petKey) return;
+  feedTimers.forEach(clearTimeout); feedTimers=[];
+  const root=rootEl(); root.classList.remove('chew','drink','open');
+  const water=id==='water', fav=id===pet().fav; feedCount++;
   const r=stage.getBoundingClientRect(), M=$('svg',stage).getScreenCTM();
   const mx=M.a*150+M.c*150+M.e-r.left, my=M.b*150+M.d*150+M.f-r.top;          // the pet's mouth
   const fl=document.createElement('div'); fl.className='food-fly'; fl.innerHTML=icon(id);
   fl.style.left=(from?from.x-r.left:r.width*.9)+'px'; fl.style.top=(from?from.y-r.top:r.height*.62)+'px';
   stage.appendChild(fl);
-  const root=rootEl(); root.classList.add('open','happy'); tone(500,900,.12,'sine',.08);   // "aaah~" mouth opens
+  void root.getBBox; root.classList.add('open','happy'); tone(500,900,.12,'sine',.08);   // "aaah~" — mouth opens every time
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ fl.style.left=mx+'px'; fl.style.top=my+'px'; fl.style.transform='translate(-50%,-50%) rotate(0) scale(.35)'; }));
   const cls=water?'drink':'chew';
-  setTimeout(()=>{ fl.remove(); if(!S.petKey) return; root.classList.remove('open'); root.classList.add(cls); water?SFX.slurp():SFX.chew(); setHappy(1300); hearts(4); },520);
-  setTimeout(()=>{
-    eating=false; if(!S.petKey) return; rootEl().classList.remove(cls,'open');
-    if(water) S.thirst=Math.min(100,S.thirst+gain); else S.hunger=Math.min(100,S.hunger+gain);
-    renderMeters(); hearts(fav||pet().foodie?6:3); SFX.voice();
-    if(pet().foodie) flashClass('jump',1000);
-    say(fav?'是我最愛的！好好吃～😋':water?'咕嚕咕嚕～好解渴！':'嗯嗯，好吃！');
-  },1750);
+  feedTimers.push(setTimeout(()=>{ fl.remove(); if(!S.petKey) return; root.classList.remove('open'); root.classList.add(cls); water?SFX.slurp():SFX.chew(); hearts(4); },520));
+  feedTimers.push(setTimeout(()=>{ if(!S.petKey) return; root.classList.remove(cls,'happy');
+    hearts(fav||pet().foodie?6:3); SFX.voice(); if(pet().foodie) flashClass('jump',1000);
+    say(fav?'是我最愛的！好好吃～😋':water?'咕嚕咕嚕～好喝！':['嗯嗯，好吃！','還要還要～','好好吃喔 ♡'][feedCount%3]); },1750));
+  setTimeout(()=>fl.remove(),900);
 }
 
 /* =========================================================
@@ -1155,14 +1163,9 @@ $('#shootBtn').onclick=()=>{
   clone.setAttribute('class','absolute left-[6%] right-[6%] top-[6%] bottom-[3%] w-[88%] h-[91%] overflow-visible');
   frame.appendChild(clone);
   $('#photoCaption').textContent=`${pet().name}的SPA日 ✨ ${new Date().toLocaleDateString('zh-TW')}`;
-  const v=meterVals(), avg=Object.values(v).reduce((a,b)=>a+b,0)/5;
-  const score = avg>=90?3: avg>=60?2:1;
-  $('#starRow').innerHTML=[0,1,2].map(i=>`<span class="star" style="animation-delay:${.4+i*.35}s">${i<score?'⭐':'☆'}</span>`).join('');
-  $('#starReasons').innerHTML = METERS.map(m=>`<li>${v[m.id]>=100?'✅':'⬜'} ${m.icon} ${m.label} ${v[m.id]}%</li>`).join('')
-    + `<li class="pt-1">${score===3?'完美的SPA！客人超滿意 💖':'把所有項目都補滿就能拿到 3 顆星喔！'}</li>`;
   S.photoBlob=null; const sb=$('#saveBtn'); sb.disabled=true; sb.textContent='照片製作中…';
-  makePhotoBlob(score).then(b=>{ S.photoBlob=b; sb.disabled=false; sb.textContent='⬇️ 下載照片'; }).catch(()=>{ sb.textContent='無法製作照片'; });
-  setTimeout(()=>{ $('#photoModal').classList.remove('hidden'); for(let i=0;i<score;i++) setTimeout(()=>SFX.star(i),400+i*350); setTimeout(SFX.voice,1500); },450);
+  makePhotoBlob().then(b=>{ S.photoBlob=b; sb.disabled=false; sb.textContent='⬇️ 下載照片'; }).catch(()=>{ sb.textContent='無法製作照片'; });
+  setTimeout(()=>{ $('#photoModal').classList.remove('hidden'); setTimeout(SFX.voice,700); },450);
 };
 function closePhoto(){ $('#photoModal').classList.add('hidden'); if(S.petKey) rootEl().classList.remove('pose','happy'); }
 $('#retakeBtn').onclick=closePhoto;
@@ -1181,8 +1184,8 @@ $('#saveBtn').onclick=async()=>{
 const EXPORT_CSS = `.eye-happy,.eye-melt,.mouth-melt,.tongue,.zones,.layer-wet{display:none}
 .happy .eye-happy{display:inline}.happy .eye-open{display:none}
 .melt .eye-melt,.melt .mouth-melt{display:inline}.melt .eye-open,.melt .eye-happy,.melt .mouth-normal{display:none}`;
-function makePhotoBlob(score){
-  const W=1080, H=1330, P={x:54,y:54,s:972}, petName=pet().name;
+function makePhotoBlob(){
+  const W=1080, H=1210, P={x:54,y:54,s:972}, petName=pet().name;
   const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
   const rr=(X,Y,w,h,r)=>{ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); };
   x.fillStyle='#fff'; rr(4,4,W-8,H-8,36); x.fill(); x.lineWidth=8; x.strokeStyle=L; x.stroke();
@@ -1190,9 +1193,6 @@ function makePhotoBlob(score){
   x.fillStyle='#FBD98A'; x.fillRect(P.x,P.y,P.s,P.s);
   x.fillStyle='#F3C163'; for(let i=0;i<P.s;i+=44) for(let j=0;j<P.s;j+=44){ x.beginPath(); x.arc(P.x+i+22,P.y+j+22,3.4,0,7); x.fill(); }
   x.fillStyle='#FFB3C1'; for(let i=0;i<=P.s;i+=110){ x.beginPath(); x.arc(P.x+i,P.y,55,0,Math.PI); x.fill(); }
-  const cx=P.x+P.s/2, cy=P.y+P.s*.9;
-  x.fillStyle='#FFB3C1'; x.beginPath(); x.ellipse(cx,cy,P.s*.34,P.s*.085,0,0,7); x.fill(); x.lineWidth=7; x.strokeStyle=L; x.stroke();
-  x.fillStyle='#FFE3E8'; x.beginPath(); x.ellipse(cx,cy-P.s*.012,P.s*.25,P.s*.045,0,0,7); x.fill(); x.lineWidth=5; x.stroke();
   const svg=$('svg',stage).cloneNode(true); $('.zones',svg)?.remove();
   svg.removeAttribute('style'); svg.removeAttribute('class'); svg.setAttribute('xmlns','http://www.w3.org/2000/svg');
   svg.setAttribute('width','600'); svg.setAttribute('height','600');
@@ -1204,10 +1204,7 @@ function makePhotoBlob(score){
       x.drawImage(img,P.x+P.s*.07,P.y+P.s*.07,P.s*.86,P.s*.86); x.restore();
       rr(P.x,P.y,P.s,P.s,24); x.lineWidth=6; x.strokeStyle=L; x.stroke();
       x.fillStyle=L; x.textAlign='center'; x.font='900 56px "Zen Maru Gothic","PingFang TC","Heiti TC",sans-serif';
-      x.fillText(`${petName}的SPA日 ✨ ${new Date().toLocaleDateString('zh-TW')}`, W/2, 1128);
-      for(let i=0;i<3;i++){ const sx=W/2+(i-1)*120, sy=1226, R=44; x.beginPath();
-        for(let k=0;k<10;k++){ const a=-Math.PI/2+k*Math.PI/5, r=k%2?R*.45:R; x.lineTo(sx+Math.cos(a)*r, sy+Math.sin(a)*r); }
-        x.closePath(); x.fillStyle=i<score?'#FFD84D':'#F2EBDD'; x.fill(); x.lineJoin='round'; x.lineWidth=6; x.strokeStyle=L; x.stroke(); }
+      x.fillText(`${petName}的SPA日 ✨ ${new Date().toLocaleDateString('zh-TW')}`, W/2, 1136);
       c.toBlob(b=>b?res(b):rej(),'image/png');
     };
     img.onerror=rej; img.src=src;
@@ -1387,7 +1384,12 @@ function build3DPlanes(){
   P3.planes.forEach(pl=>pl.tex && P3.gl.deleteTexture(pl.tex)); P3.planes=[];
   const Z=petZones(pet());
   Object.entries(S.acc).forEach(([z,id])=>{ const [sx,sy]=Z[z], {r,s}=ZONE_POSE[z], a=ACCS.find(x=>x.id===id);
-    const size=88*s/K3, zz=(z==='tail'? -10 : surfZ(sx,sy)+5)/K3, [x,y]=w3(sx,sy);
+    let front=0; const hx=28*s, hy=16*s;
+    for(let i=-3;i<=3;i++) for(let j=-3;j<=3;j++){ const qx=sx+i/3*hx, qy=sy+j/3*hy;
+      const hv=((qx-150)/90)**2+((qy-119)/65)**2, bv=((qx-150)/80)**2+((qy-218)/62)**2;
+      if(hv<1) front=Math.max(front,74*Math.sqrt(1-hv)); if(bv<1) front=Math.max(front,64*Math.sqrt(1-bv)-4); }
+    if(z==='earL'||z==='earR') front=Math.max(front,16);
+    const size=88*s/K3, zz=(z==='tail'? -10 : front+7)/K3, [x,y]=w3(sx,sy);
     const pl={m:M4.chain(M4.tr(x,y,zz),M4.rz(rad(-r)),M4.sc(size,size,1)), tex:P3.gl.createTexture(), tail:z==='tail'};
     P3.planes.push(pl);
     const d=document.createElement('div'); d.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-44 -44 88 88" width="256" height="256">${a.svg()}</svg>`;
@@ -1447,12 +1449,24 @@ function render3D(now){
   for(const part of P3.parts){ gl.cullFace(part.flip?gl.FRONT:gl.BACK); gl.uniform1i(L_.uMode,part.mode||0); gl.uniform3f(L_.uC,...hex(part.c)); draw(part,localOf(part)); }
   // pass 3: accessories (textured cards that turn with the pet)
   gl.disable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA); gl.uniform1i(L_.uMode,2);
-  for(const pl of P3.planes){ if(!pl.ready) continue; gl.bindTexture(gl.TEXTURE_2D,pl.tex); draw({g:'quad'}, pl.tail?M4.mul(TAILM,pl.m):pl.m); }
+  const facing=Math.cos(rad(S.rot))>0.15;           // facing the camera -> accessories always drawn on top
+  if(facing) gl.disable(gl.DEPTH_TEST);
+  for(const pl of P3.planes){ if(!pl.ready) continue; if(facing && pl.tail) gl.enable(gl.DEPTH_TEST); else if(facing) gl.disable(gl.DEPTH_TEST);
+    gl.bindTexture(gl.TEXTURE_2D,pl.tex); draw({g:'quad'}, pl.tail?M4.mul(TAILM,pl.m):pl.m); }
+  gl.enable(gl.DEPTH_TEST);
   gl.disable(gl.BLEND);
   P3.raf=requestAnimationFrame(render3D);
 }
 
 $('#matPath').setAttribute('d',cloud(150,30,142,24,22,7));
+/* iPad: never zoom — block pinch, double-tap and gesture zoom */
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('touchmove',e=>{ if(e.touches.length>1 || (e.scale!==undefined && e.scale!==1)) e.preventDefault(); },{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+let lastTouchEnd=0;
+document.addEventListener('touchend',e=>{ const now=Date.now();
+  if(now-lastTouchEnd<=350 && !e.target.closest('button,[data-acc],[data-item],[data-pet],[data-cat],[data-spin]')) e.preventDefault();
+  lastTouchEnd=now; },{passive:false});
 renderSelect();
 </script>
 </body>
