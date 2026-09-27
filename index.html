@@ -64,6 +64,8 @@
   .turntable{ position:absolute; left:6%; width:88%; bottom:0.5%; z-index:2; touch-action:none; cursor:grab; }
   .spin-btn{ position:absolute; bottom:4%; z-index:8; width:40px; height:40px; font-weight:900; font-size:20px; display:grid; place-items:center; }
   #rightBtns{ display:grid; grid-template-columns:repeat(2,auto); gap:10px 8px; align-content:center; justify-items:center; }
+  .scene-dress ~ * #rightBtns, #rightBtns.dress{ grid-template-columns:repeat(3,auto); gap:8px 6px; }
+  #rightBtns.dress .circle-btn{ width:clamp(40px,7.4vw,56px); height:clamp(40px,7.4vw,56px); padding:5px; }
   .furbit{ position:absolute; pointer-events:none; width:20px; z-index:6; animation:furfall 1.1s ease-in forwards; }
   @keyframes furfall{ to{ transform:translate(var(--dx,0px),110px) rotate(var(--rz,90deg)); opacity:0 } }
   .tool-scissors.snip svg{ animation:snip .16s ease-in-out; }
@@ -495,6 +497,7 @@ function petSVG(key){
       <g class="feet-g"><ellipse cx="92" cy="264" rx="22" ry="13" fill="${X.foot}" ${OUT}/><ellipse cx="208" cy="264" rx="22" ry="13" fill="${X.foot}" ${OUT}/>${pads}</g>
       <g class="paw-f">${paws}</g>
       <g class="arm-anim paw-f" style="transform-origin:152px 246px">${pawR}</g>
+      <g class="layer-collar"></g>
       <path class="skin-ol" d="${HEAD}" fill="${p.fur}" ${OUT}/>
       <g class="front-mark" clip-path="url(#${u}h)">${X.headMarks}</g>
       <path class="ol-only" d="${HEAD}" fill="none" ${OUT}/>
@@ -583,22 +586,38 @@ const ACCS = [
   { id:'crown',name:'小皇冠', svg:()=>`<g><path d="M-20 10 L-22 -12 L-10 -2 L0 -18 L10 -2 L22 -12 L20 10Z" fill="#FFD95E" ${sk} stroke-width="3"/><circle cy="3" r="4" fill="#FF8FB1" stroke="${L}" stroke-width="2"/><circle cx="-12" cy="4" r="2.8" fill="#8FD3FF" stroke="${L}" stroke-width="1.8"/><circle cx="12" cy="4" r="2.8" fill="#8FD3FF" stroke="${L}" stroke-width="1.8"/></g>` },
   { id:'flower',name:'小花髮夾', svg:()=>{ let s='<g>'; for(let i=0;i<5;i++){const a=i/5*Math.PI*2-Math.PI/2; s+=`<circle cx="${f1(Math.cos(a)*11)}" cy="${f1(Math.sin(a)*11)}" r="9" fill="#FFC2D6" stroke="${L}" stroke-width="2.6"/>`;} return s+`<circle r="7" fill="#FFE07A" stroke="${L}" stroke-width="2.6"/></g>`; } },
   { id:'glasses',name:'酷酷墨鏡', svg:()=>`<g><path d="M-14 -3 Q0 -9 14 -3" fill="none" ${sk} stroke-width="3"/><rect x="-42" y="-12" width="28" height="20" rx="8" fill="#2B2222" ${sk} stroke-width="3"/><rect x="14" y="-12" width="28" height="20" rx="8" fill="#2B2222" ${sk} stroke-width="3"/><path d="M-36 -6 L-30 -9 M20 -6 L26 -9" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></g>` },
-  { id:'pearls',name:'珍珠項鍊', svg:()=>{ let s='<g>'; for(let x=-40;x<=40;x+=8){ s+=`<circle cx="${x}" cy="${f1(-4+x*x/170)}" r="4.6" fill="#FFF8F0" stroke="${L}" stroke-width="2"/>`; } return s+`<path d="M0 0 C-7 -6 -9 4 0 10 C9 4 7 -6 0 0Z" transform="translate(0 2)" fill="#FF8FB1" stroke="${L}" stroke-width="2"/></g>`; } },
-  { id:'bowtie', name:'小領結', svg:()=>`<g><path d="M0 0 L-20 -11 Q-24 0 -20 11Z" fill="#6FB7F0" ${sk} stroke-width="3"/><path d="M0 0 L20 -11 Q24 0 20 11Z" fill="#6FB7F0" ${sk} stroke-width="3"/><rect x="-5" y="-6" width="10" height="12" rx="3" fill="#4E97D6" ${sk} stroke-width="3"/><circle cx="-13" cy="-2" r="2" fill="#fff"/><circle cx="13" cy="2" r="2" fill="#fff"/></g>` },
-  { id:'star', name:'星星髮夾', svg:()=>`<g><path d="M0 -18 L5 -6 L18 -5 L8 3 L11 16 L0 9 L-11 16 L-8 3 L-18 -5 L-5 -6Z" fill="#FFD84D" ${sk} stroke-width="3"/><circle cx="-4" cy="0" r="1.6" fill="${L}"/><circle cx="4" cy="0" r="1.6" fill="${L}"/><path d="M-3 4 Q0 6.5 3 4" stroke="${L}" stroke-width="1.5" fill="none" stroke-linecap="round"/></g>` },
+  { id:'bowtie', collar:'#6FB7F0', name:'領結項圈', svg:()=>`<g><path d="M0 0 L-20 -11 Q-24 0 -20 11Z" fill="#6FB7F0" ${sk} stroke-width="3"/><path d="M0 0 L20 -11 Q24 0 20 11Z" fill="#6FB7F0" ${sk} stroke-width="3"/><rect x="-5" y="-6" width="10" height="12" rx="3" fill="#4E97D6" ${sk} stroke-width="3"/><circle cx="-13" cy="-2" r="2" fill="#fff"/><circle cx="13" cy="2" r="2" fill="#fff"/></g>` },
+  { id:'star', name:'星星髮夾', svg:()=>`<g><path d="M0 -18 L5 -6 L18 -5 L8 3 L11 16 L0 9 L-11 16 L-8 3 L-18 -5 L-5 -6Z" fill="#FFD84D" ${sk} stroke-width="3"/><path d="M-6 -7 Q-3 -9 0 -8" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/></g>` },
   { id:'hglasses', name:'愛心眼鏡', svg:()=>{ const h='M0 8 C-15 -2 -15 -14 -6 -14 C-2 -14 0 -10 0 -8 C0 -10 2 -14 6 -14 C15 -14 15 -2 0 8Z';
       return `<g><path d="M-14 -4 Q0 -10 14 -4" fill="none" ${sk} stroke-width="3"/><path d="${h}" transform="translate(-26 0) scale(1.35)" fill="#FF7FA8" ${sk} stroke-width="2.2"/><path d="${h}" transform="translate(26 0) scale(1.35)" fill="#FF7FA8" ${sk} stroke-width="2.2"/><path d="M-32 -8 L-28 -11 M20 -8 L24 -11" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></g>`; } },
-  { id:'wreath', name:'花圈', svg:()=>{ let g='<g>'; const cs=['#FFB3CF','#FFE27A','#C9B3F2','#B8E6D8'];
-      for(let i=0;i<7;i++){ const x=-36+i*12, y=f1(-8+x*x/150); g+=`<ellipse cx="${x+6}" cy="${f1(+y+4)}" rx="5" ry="3" fill="#7CCB7A" stroke="${L}" stroke-width="1.6"/><circle cx="${x}" cy="${y}" r="6" fill="${cs[i%4]}" stroke="${L}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="2" fill="#fff"/>`; }
-      return g+'</g>'; } },
-  { id:'bell', name:'鈴鐺項圈', svg:()=>`<g><path d="M-40 -8 Q0 10 40 -8 L40 1 Q0 19 -40 1Z" fill="#FF6F8E" ${sk} stroke-width="3"/>
+  { id:'bell', collar:'#FF6F8E', name:'鈴鐺項圈', svg:()=>`<g><path d="M-40 -8 Q0 10 40 -8 L40 1 Q0 19 -40 1Z" fill="#FF6F8E" ${sk} stroke-width="3"/>
       <path d="M-30 -2 Q0 12 30 -2" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/>
       <circle cy="15" r="8.5" fill="#FFD84D" ${sk} stroke-width="2.6"/><path d="M-6 16 H6" stroke="${L}" stroke-width="2" stroke-linecap="round"/><circle cy="19" r="1.8" fill="${L}"/><circle cx="-3" cy="11" r="2" fill="#fff"/></g>` },
-  { id:'lace', name:'蕾絲項圈', svg:()=>{ let sc=''; for(let x=-34;x<=34;x+=8.5){ const y=f1(4+ (x*x)/260); sc+=`<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${L}" stroke-width="1.8"/>`; }
+  { id:'lace', collar:'#C9B3F2', name:'蕾絲項圈', svg:()=>{ let sc=''; for(let x=-34;x<=34;x+=8.5){ const y=f1(4+ (x*x)/260); sc+=`<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${L}" stroke-width="1.8"/>`; }
       return `<g>${sc}<path d="M-40 -9 Q0 7 40 -9 L40 -1 Q0 15 -40 -1Z" fill="#C9B3F2" ${sk} stroke-width="3"/><circle cy="9" r="6" fill="#FF8FB1" stroke="${L}" stroke-width="2.2"/><circle cx="-2" cy="7" r="1.8" fill="#fff"/></g>`; } },
   { id:'heartclip', name:'愛心髮夾', svg:()=>`<g><rect x="-20" y="-4" width="40" height="8" rx="4" fill="#FFE27A" ${sk} stroke-width="2.6"/>
       <path d="M0 16 C-24 2 -22 -18 -9 -18 C-4 -18 0 -14 0 -10 C0 -14 4 -18 9 -18 C22 -18 24 2 0 16Z" fill="#FF7FA8" ${sk} stroke-width="3"/>
       <path d="M-11 -10 Q-8 -14 -4 -13" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="8" cy="-4" r="1.8" fill="#fff"/></g>` },
+  { id:'yflower', name:'小黃花', svg:()=>{ let g='<g><path d="M4 12 Q14 22 24 16 Q14 10 4 12Z" fill="#8FD18B" stroke="${L}" stroke-width="2.2" stroke-linejoin="round"/>';
+      for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; g+=`<ellipse cx="${f1(Math.cos(a)*11)}" cy="${f1(Math.sin(a)*11)}" rx="9" ry="7" transform="rotate(${f1(a*180/Math.PI)} ${f1(Math.cos(a)*11)} ${f1(Math.sin(a)*11)})" fill="#FFE066" stroke="${L}" stroke-width="2.4"/>`; }
+      return g+`<circle r="7.5" fill="#FFA94D" stroke="${L}" stroke-width="2.4"/><circle cx="-2.5" cy="-2.5" r="2.2" fill="#FFD9A8"/></g>`; } },
+  { id:'strawberry', name:'小草莓', svg:()=>`<g><path d="M0 -12 C14 -14 22 -4 18 8 C14 18 6 24 0 24 C-6 24 -14 18 -18 8 C-22 -4 -14 -14 0 -12Z" fill="#FF6F7D" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+      <g fill="#FFE8A3"><ellipse cx="-8" cy="-1" rx="1.6" ry="2.2"/><ellipse cx="2" cy="-3" rx="1.6" ry="2.2"/><ellipse cx="10" cy="1" rx="1.6" ry="2.2"/><ellipse cx="-11" cy="9" rx="1.6" ry="2.2"/><ellipse cx="-2" cy="7" rx="1.6" ry="2.2"/><ellipse cx="8" cy="10" rx="1.6" ry="2.2"/><ellipse cx="-4" cy="16" rx="1.6" ry="2.2"/><ellipse cx="4" cy="17" rx="1.6" ry="2.2"/></g>
+      <path d="M-13 -11 Q-8 -20 0 -14 Q6 -22 12 -12 Q16 -18 18 -9 Q8 -6 0 -9 Q-8 -6 -18 -8 Q-17 -14 -13 -11Z" fill="#6CC36A" stroke="${L}" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M0 -14 Q1 -20 4 -23" fill="none" stroke="${L}" stroke-width="2.6" stroke-linecap="round"/><path d="M-13 0 Q-13 -6 -8 -8" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/></g>` },
+  { id:'feather', name:'天使羽毛', svg:()=>`<g transform="rotate(-30)"><path d="M0 -30 C14 -22 16 0 8 18 C5 24 2 27 0 28 C-2 27 -5 24 -8 18 C-16 0 -14 -22 0 -30Z" fill="#FFFFFF" stroke="${L}" stroke-width="2.8" stroke-linejoin="round"/>
+      <g stroke="#B9D4EA" stroke-width="1.8" stroke-linecap="round"><path d="M0 -16 L-9 -20 M0 -8 L-11 -12 M0 0 L-11 -4 M0 8 L-9 5 M0 -16 L9 -20 M0 -8 L11 -12 M0 0 L11 -4 M0 8 L9 5"/></g>
+      <path d="M0 -27 V36" stroke="${L}" stroke-width="2.4" stroke-linecap="round"/></g>
+      <path d="M22 -20 l2 4.5 4.5 2 -4.5 2 -2 4.5 -2 -4.5 -4.5 -2 4.5 -2Z" fill="#FFE27A" stroke="${L}" stroke-width="1.4" stroke-linejoin="round"/>` },
+  { id:'bearcookie', name:'小熊餅乾', svg:()=>`<g><circle cx="-15" cy="-14" r="9" fill="#E8B06A" stroke="${L}" stroke-width="2.8"/><circle cx="15" cy="-14" r="9" fill="#E8B06A" stroke="${L}" stroke-width="2.8"/>
+      <circle cx="-15" cy="-14" r="4.2" fill="#C98546"/><circle cx="15" cy="-14" r="4.2" fill="#C98546"/>
+      <circle cy="2" r="21" fill="#E8B06A" stroke="${L}" stroke-width="2.8"/>
+      <ellipse cy="9" rx="9" ry="7" fill="#F6D29A" stroke="${L}" stroke-width="1.8"/><ellipse cy="6.5" rx="3.4" ry="2.4" fill="#6B4226"/>
+      <circle cx="-8" cy="-2" r="2.8" fill="#6B4226"/><circle cx="8" cy="-2" r="2.8" fill="#6B4226"/>
+      <g fill="#D99A58"><circle cx="-14" cy="12" r="1.3"/><circle cx="14" cy="11" r="1.3"/><circle cx="-3" cy="17" r="1"/><circle cx="12" cy="-6" r="1"/></g></g>` },
+  { id:'cloud', name:'小雲朵', svg:()=>`<g><path d="M-26 12 Q-34 12 -34 3 Q-34 -6 -24 -6 Q-24 -20 -9 -20 Q-1 -28 10 -21 Q24 -24 26 -9 Q36 -8 35 3 Q34 12 25 12Z" fill="#FFFFFF" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M-26 8 Q0 14 26 8" stroke="#CFE6F7" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M-18 -8 Q-15 -14 -8 -14" stroke="#EAF4FF" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M30 -24 l1.6 3.6 3.6 1.6 -3.6 1.6 -1.6 3.6 -1.6 -3.6 -3.6 -1.6 3.6 -1.6Z" fill="#FFE27A" stroke="${L}" stroke-width="1.3" stroke-linejoin="round"/></g>` },
   { id:'hat', name:'小草帽', svg:()=>`<g><ellipse cy="8" rx="34" ry="9" fill="#F6D58B" ${sk} stroke-width="3"/><path d="M-18 8 Q-18 -18 0 -18 Q18 -18 18 8Z" fill="#F6D58B" ${sk} stroke-width="3"/><path d="M-18 0 Q0 5 18 0 V5 Q0 10 -18 5Z" fill="#FF8FB1" stroke="${L}" stroke-width="2"/></g>` },
 ];
 
@@ -697,7 +716,7 @@ function selectCategory(cat){
   stage.classList.toggle('show-zones',cat==='dress');
   if(cat==='dress') setTimeout(start3D,0); else stop3D();
   setRot(0);
-  const R=$('#rightBtns');
+  const R=$('#rightBtns'); R.classList.toggle('dress',cat==='dress');
   const mk=(b,extra='')=>`<div class="flex flex-col items-center relative">
       <button data-item="${b.id}" class="doodle-btn circle-btn">${icon(b.id)}</button>
       ${b.id===pet().fav?'<span class="fav-badge">💗</span>':''}${extra}
@@ -1132,7 +1151,7 @@ function dragAcc(e,id,from){
   const a=ACCS.find(x=>x.id===id);
   startDrag(e,`<svg viewBox="-44 -44 88 88" width="84" height="84">${a.svg()}</svg>`,{
     onMove:ev=>{ const h=nearestZone(ev); $$('.zone',stage).forEach(z=>z.classList.toggle('hot',z.dataset.zone===h)); },
-    onDrop:ev=>{ $$('.zone',stage).forEach(z=>z.classList.remove('hot')); const h=nearestZone(ev);
+    onDrop:ev=>{ $$('.zone',stage).forEach(z=>z.classList.remove('hot')); let h=nearestZone(ev); if(!h && inStage(ev) && a.collar && onPet(svgPt(ev))) h='neck'; if(h && a.collar) h='neck';
       if(h){ S.acc[h]=id; SFX.place(); setHappy(1600); flashClass('wag',1600); hearts(3);
         say(pet().fashion?'好適合我！💕':['好可愛～','我美嗎？✨','喜歡喜歡！'][Math.floor(Math.random()*3)]); }
       else if(from) SFX.pop();
@@ -1141,9 +1160,33 @@ function dragAcc(e,id,from){
 }
 function nearestZone(ev){ if(!inStage(ev)) return null; const p=svgPt(ev); let best=null,bd=48;
   Object.entries(petZones(pet())).forEach(([k,[x,y]])=>{ const d=Math.hypot(p.x-x,p.y-y); if(d<bd){bd=d;best=k;} }); return best; }
+/* neck line = the real bottom outline of the head (same bezier as HEAD), mirrored for the left side */
+function neckPts(dy=0,span=58){
+  const c=cubicAt([240,120],[240,162],[208,184],[150,184]), R=[];
+  for(let i=0;i<=60;i++){ const q=c(i/60); if(q.x<=150+span) R.push([q.x,q.y+dy]); }
+  const left=R.map(([x,y])=>[300-x,y]), right=R.slice().reverse();
+  return [...left,...right.slice(1)];
+}
+const ptsPath=pts=>'M'+pts.map(([x,y])=>`${f1(x)} ${f1(y)}`).join(' L');
+function collarSVG(a){
+  const pet_=pet(), dy=4+(pet_.neckDy||0);
+  const band=ptsPath(neckPts(dy)), stitch=ptsPath(neckPts(dy,52));
+  const midY=184+dy;                                   // collar centre under the chin
+  let under='', over='';
+  if(a.id==='lace'){ const lp=neckPts(dy+7,54); for(let k=0;k<lp.length;k+=6){ const [x,y]=lp[k]; under+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="4.4" fill="#fff" stroke="${L}" stroke-width="1.7"/>`; }
+    over=`<circle cx="150" cy="${midY+6}" r="5.6" fill="#FF8FB1" stroke="${L}" stroke-width="2.2"/><circle cx="148.3" cy="${midY+4.3}" r="1.7" fill="#fff"/>`; }
+  if(a.id==='bell') over=`<circle cx="150" cy="${midY+11}" r="8" fill="#FFD84D" stroke="${L}" stroke-width="2.5"/><path d="M144.5 ${midY+12} H155.5" stroke="${L}" stroke-width="2" stroke-linecap="round"/><circle cx="150" cy="${midY+15}" r="1.7" fill="${L}"/><circle cx="147" cy="${midY+7.5}" r="2" fill="#fff"/>`;
+  if(a.id==='bowtie') over=`<g transform="translate(150 ${midY+3}) scale(.78)">${a.svg()}</g>`;
+  const bandSVG=`<g class="pop-in">${under}<path d="${band}" fill="none" stroke="${L}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${band}" fill="none" stroke="${a.collar}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${stitch}" fill="none" stroke="#fff" stroke-width="1.8" stroke-dasharray="3 5" stroke-linecap="round" opacity=".85"/></g>`;
+  return {band:bandSVG, over:`<g class="pop-in">${over}</g>`};
+}
 function drawAcc(){
   const Z=petZones(pet());
-  $('.layer-acc',stage).innerHTML = Object.entries(S.acc).map(([z,id])=>{ const [x,y]=Z[z],{r,s}=ZONE_POSE[z];
+  const col=$('.layer-collar',stage); if(col) col.innerHTML='';
+  $('.layer-acc',stage).innerHTML = Object.entries(S.acc).map(([z,id])=>{ const [x,y]=Z[z],{r,s}=ZONE_POSE[z], A=ACCS.find(a=>a.id===id);
+    if(A && A.collar){ const c=collarSVG(A); if(col) col.innerHTML=c.band; return c.over; }
     return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><g class="pop-in">${ACCS.find(a=>a.id===id).svg()}</g></g>`; }).join('');
   $$('.zone',stage).forEach(zn=>zn.classList.toggle('filled',!!S.acc[zn.dataset.zone]));
   if(P3.on) build3DPlanes();
@@ -1251,12 +1294,12 @@ function geoCone(n=28){ const P=[],N=[],U=[],I=[]; const s=Math.SQRT1_2;
   for(let j=0;j<=n;j++){ const a=j/n*2*Math.PI; P.push(Math.cos(a),0,Math.sin(a)); N.push(0,-1,0); U.push(0,0); }
   for(let j=0;j<n;j++) I.push(base, base+1+j, base+2+j);
   return {P,N,U,I}; }
-function geoTube(pts,r,seg=18){ const P=[],N=[],U=[],I=[]; const n=pts.length;
+function geoTube(pts,r,seg=18,n0){ const P=[],N=[],U=[],I=[]; const n=pts.length;
   let prevN=null;
   for(let i=0;i<n;i++){
     const a=pts[Math.max(0,i-1)], b=pts[Math.min(n-1,i+1)];
     let t=[b[0]-a[0],b[1]-a[1],b[2]-a[2]]; const tl=Math.hypot(...t)||1; t=t.map(v=>v/tl);
-    let nn = prevN || [0,0,1]; const d=nn[0]*t[0]+nn[1]*t[1]+nn[2]*t[2];
+    let nn = prevN || n0 || [0,0,1]; const d=nn[0]*t[0]+nn[1]*t[1]+nn[2]*t[2];
     nn=[nn[0]-d*t[0],nn[1]-d*t[1],nn[2]-d*t[2]]; const nl=Math.hypot(...nn)||1; nn=nn.map(v=>v/nl); prevN=nn;
     const bn=[t[1]*nn[2]-t[2]*nn[1], t[2]*nn[0]-t[0]*nn[2], t[0]*nn[1]-t[1]*nn[0]];
     for(let j=0;j<=seg;j++){ const q=j/seg*2*Math.PI, c=Math.cos(q), s=Math.sin(q);
@@ -1315,7 +1358,7 @@ function svgToCanvas(svgStr,size){ return new Promise((res,rej)=>{ const img=new
   img.onerror=rej; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr); }); }
 
 /* the painted "skin": the front drawing (face, patches, dirt…) projected onto head & body */
-const SKIN_CSS = EXPORT_CSS + `.tail-anim,.back-g,.feet-g,.paw-f,.pet-shadow,.zones,.layer-acc,.layer-sparkle,.layer-wet,.ol-only,.xfront{display:none}.skin-ol{stroke:none}`;
+const SKIN_CSS = EXPORT_CSS + `.layer-collar,.tail-anim,.back-g,.feet-g,.paw-f,.pet-shadow,.zones,.layer-acc,.layer-sparkle,.layer-wet,.ol-only,.xfront{display:none}.skin-ol{stroke:none}`;
 function refreshSkin(){
   if(P3.busy || !P3.on) return; P3.busy=true; P3.dirty=false;
   const src=$('#petHolder > svg'); if(!src){ P3.busy=false; return; }
@@ -1380,10 +1423,27 @@ function build3DParts(key){
 }
 function surfZ(sx,sy){ const hv=((sx-150)/90)**2+((sy-119)/65)**2, bv=((sx-150)/80)**2+((sy-218)/62)**2;
   if(hv<1) return 74*Math.sqrt(1-hv); if(bv<1) return 64*Math.sqrt(1-bv)-4; return 12; }
+function buildCollar3D(a){
+  // ring follows the body surface: at each angle take the body's own radius at that height (+1.5 so it sits ON the fur)
+  const ring=(th,dy=0,out=0)=>{ const y=183+dy+4*Math.sin(th), k=Math.sqrt(Math.max(0,1-((y-218)/62)**2));
+    const rx=80*k+1.5+out, rz=64*k+1.5+out; return [rx*Math.cos(th)/K3,(280-y)/K3,(-4+rz*Math.sin(th))/K3]; };
+  const pts=[]; for(let i=0;i<=72;i++) pts.push(ring(i/72*Math.PI*2));
+  P3.geo.collar=upload(geoTube(pts,5.2/K3,14,[0,1,0]));
+  P3.collar.push({g:'collar', m:M4.tr(0,0,0), c:a.collar});
+  const at=(th,dy,out)=>M4.tr(...ring(th,dy,out));
+  if(a.id==='bell') P3.collar.push({g:'sphere', m:M4.mul(at(Math.PI/2,10,6),M4.sc(8/K3,8/K3,8/K3)), c:'#FFD84D'});
+  if(a.id==='lace'){ for(let k=0;k<=14;k++){ const th=Math.PI*(.1+.8*k/14); P3.collar.push({g:'sphere', m:M4.mul(at(th,7,1),M4.sc(4.4/K3,4.4/K3,3/K3)), c:'#FFFFFF'}); }
+    P3.collar.push({g:'sphere', m:M4.mul(at(Math.PI/2,6,5),M4.sc(5.6/K3,5.6/K3,4/K3)), c:'#FF8FB1'}); }
+  if(a.id==='bowtie'){ const pl={m:M4.mul(at(Math.PI/2,3,9),M4.sc(88*.78/K3,88*.78/K3,1)), tex:P3.gl.createTexture()}; P3.planes.push(pl);
+    const d=document.createElement('div'); d.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-44 -44 88 88" width="256" height="256">${a.svg()}</svg>`;
+    svgToCanvas(new XMLSerializer().serializeToString(d.firstElementChild),256).then(c=>{ texFrom(c,pl.tex); pl.ready=true; }).catch(()=>{}); }
+}
 function build3DPlanes(){
   P3.planes.forEach(pl=>pl.tex && P3.gl.deleteTexture(pl.tex)); P3.planes=[];
   const Z=petZones(pet());
+  P3.collar=[];
   Object.entries(S.acc).forEach(([z,id])=>{ const [sx,sy]=Z[z], {r,s}=ZONE_POSE[z], a=ACCS.find(x=>x.id===id);
+    if(a && a.collar){ buildCollar3D(a); return; }
     let front=0; const hx=28*s, hy=16*s;
     for(let i=-3;i<=3;i++) for(let j=-3;j<=3;j++){ const qx=sx+i/3*hx, qy=sy+j/3*hy;
       const hv=((qx-150)/90)**2+((qy-119)/65)**2, bv=((qx-150)/80)**2+((qy-218)/62)**2;
@@ -1443,10 +1503,11 @@ function render3D(now){
   const hex=c=>{ let h=c.slice(1); if(h.length===3) h=h.split('').map(x=>x+x).join(''); const n=parseInt(h,16); return [(n>>16&255)/255,(n>>8&255)/255,(n&255)/255]; };
   // pass 1: outlines (inflated back faces)
   gl.uniform1f(L_.uOut,.045); gl.uniform1i(L_.uMode,0);
-  for(const part of P3.parts){ if(part.noOut) continue; gl.cullFace(part.flip?gl.BACK:gl.FRONT); draw(part,localOf(part)); }
+  const ALL=[...P3.parts,...(P3.collar||[])];
+  for(const part of ALL){ if(part.noOut) continue; gl.cullFace(part.flip?gl.BACK:gl.FRONT); draw(part,localOf(part)); }
   // pass 2: colour
   gl.uniform1f(L_.uOut,0); gl.bindTexture(gl.TEXTURE_2D,P3.skin);
-  for(const part of P3.parts){ gl.cullFace(part.flip?gl.FRONT:gl.BACK); gl.uniform1i(L_.uMode,part.mode||0); gl.uniform3f(L_.uC,...hex(part.c)); draw(part,localOf(part)); }
+  for(const part of ALL){ gl.cullFace(part.flip?gl.FRONT:gl.BACK); gl.uniform1i(L_.uMode,part.mode||0); gl.uniform3f(L_.uC,...hex(part.c)); draw(part,localOf(part)); }
   // pass 3: accessories (textured cards that turn with the pet)
   gl.disable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA); gl.uniform1i(L_.uMode,2);
   const facing=Math.cos(rad(S.rot))>0.15;           // facing the camera -> accessories always drawn on top
